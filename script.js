@@ -3,12 +3,12 @@ const fs = require("fs");
 const path = require("path");
 
 const url = "https://accounts.practo.com/login?next=%2Fcheckid_request&intent=fabric";
-const id = "stormbreaker0288@gmail.com";
-const password = "Yourp@ssword0288";
-const Disease = "Ayurveda";
+const id = "stormbreaker123@gmail.com";
+const password = "Yourpassword";
+const Disease = "Dentist";
 const location = "Raja Garden";
-const numberOfDoctor = 5;
-const homeLocation = "145/RZ, Block B, Janta Colony, Tagore Garden Extension, New Delhi, Delhi";
+const numberOfDoctor = 4; // number of doctor whose details we want to fetch
+const homeLocation = "145/RZ, Block Z, Tagore Garden Extension 2, New Delhi, Delhi";
 
 let finalData = [];
 async function main() {
@@ -63,7 +63,7 @@ async function enterLocationAndDisease(tab) {
     await tab.click("div[data-qa-id='omni-suggestion-locality']");
     // console.log(locationAndSpecility.length);
 
-    // Entering Speciality ( Disease )
+    // Entering ( Disease )
     await tab.waitForSelector(".c-omni-searchbox.c-omni-searchbox--small", { visible: true });
     await locationAndDisease[1].type(Disease);
     await tab.keyboard.press("Enter");
@@ -250,7 +250,9 @@ async function googleMap(url, browser, name) {
     await tab.type("#sb_ifc50 input", homeLocation);
     await tab.keyboard.press("Enter");
 
+    // await tab.waitForNavigation({ waitUntil: "networkidle2" });
     // to get GOOGLE MAP DIRECTION SCREENSHOT
+    await tab.waitFor(4000);
     await googleMapTakeScreenShot(tab, name);
 
     await tab.waitForSelector("input[class='section-copy-link-input']", { visible: true });
@@ -268,7 +270,8 @@ async function googleMap(url, browser, name) {
         return ele.getAttribute("value");
     }, embedHTMLSelector);
     // console.log(embedHTMLOfGoogleMap);
-
+     
+    await googleMapGetEmbedHTML(embedHTMLOfGoogleMap, name);
     // close button
     await tab.click("button[aria-label='Close']");
 
@@ -276,6 +279,21 @@ async function googleMap(url, browser, name) {
     await googleMapTakePdf(mapDirectionLink, name);
 
     await tab.close();
+}
+
+async function googleMapGetEmbedHTML(embedHTMLOfGoogleMap, name){
+
+    let dirPath = path.join('./files/' + name + '/' + 'Clinic Route.html');
+    fileCreater(dirPath, "");
+    let data = "";
+
+    let htmlFirstPart = '<!DOCTYPE html>  <html lang="en">  <head>  <meta charset="UTF-8">  <meta http-equiv="X-UA-Compatible" content="IE=edge">  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Document</title>   </head>  <body>  ';
+    let html = embedHTMLOfGoogleMap;
+    let htmlSecondPart = '  </body>  </html>';
+
+    data = htmlFirstPart + html + htmlSecondPart;
+
+    fs.writeFileSync(dirPath, data);
 }
 
 async function googleMapTakeScreenShot(tab, name){
@@ -286,9 +304,8 @@ async function googleMapTakeScreenShot(tab, name){
     let dirPath1 = path.join('./files/' + name + '/' + 'Clinic Route.jpg');
     fileCreater(dirPath1, "");
 
-    // taking screenshoot
-    await tab.waitForNavigation({ waitUntil: "networkidle0" });
-    await tab.waitFor(4000);
+    // taking screenshot
+    await tab.waitFor(6000);
     await tab.screenshot({
         path: dirPath1,
         type: 'jpeg',
@@ -303,7 +320,7 @@ async function googleMapTakeScreenShot(tab, name){
 
     await tab.waitForSelector("#section-directions-trip-0", { visible: true });
     // await tab.waitForNavigation({ waitUntil: "networkidle0" });
-    await tab.click("#section-directions-trip-0", { waitUntil: "networkidle0" });
+    await tab.click("#section-directions-trip-0");
 
     // clicking on share link button
     await tab.waitForSelector("button[vet='14906']", { visible: true });
@@ -324,13 +341,11 @@ async function googleMapTakePdf(url, name) {
     await tab.waitForSelector("button[vet='7974']", { visible: true });
     await tab.click("button[vet='7974']");
 
-    // fs.mkdirSync('files/' + name);
     await tab.waitForNavigation({ waitUntil: 'networkidle2' });
 
     let dirPath = path.join('./files/' + name + '/Clinc Direction.pdf');
     fileCreater(dirPath, "");
 
-    // await tab.pdf({ path: dirPath, format: "Letter" });
     // creating pdf
     await tab.pdf({
         printBackground: true,
@@ -349,4 +364,3 @@ async function googleMapTakePdf(url, name) {
 main();
 
 // node script.js
-
